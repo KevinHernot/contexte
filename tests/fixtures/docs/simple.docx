@@ -1,0 +1,3 @@
+Simple DOCX fallback fixture.
+
+This is intentionally plain text with a .docx suffix so offline tests exercise graceful decoder fallback when a malformed DOCX is encountered.

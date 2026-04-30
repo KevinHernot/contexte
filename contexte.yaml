@@ -1,0 +1,30 @@
+schema_version: "0.1"
+
+input:
+  include:
+    - "**/*.md"
+    - "**/*.txt"
+    - "**/*.html"
+    - "**/*.pdf"
+    - "**/*.docx"
+    - "**/*.csv"
+    - "**/*.json"
+  exclude:
+    - "**/.git/**"
+    - "**/node_modules/**"
+    - "**/dist/**"
+    - "**/__pycache__/**"
+
+chunking:
+  strategy: heading
+  max_chars: 3000
+  overlap_chars: 200
+
+security:
+  pii: true
+  secrets: true
+  prompt_injection: true
+
+report:
+  html: true
+  json: true

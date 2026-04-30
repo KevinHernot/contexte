@@ -1,0 +1,88 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "contexte"
+version = "0.1.0"
+description = "Compile raw documents into trustworthy, portable AI context packs."
+readme = "README.md"
+requires-python = ">=3.11"
+license = "Apache-2.0"
+authors = [{ name = "Contexte Contributors" }]
+keywords = ["rag", "context", "ai", "cli", "ctxpack", "provenance"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+  "beautifulsoup4>=4.12",
+  "pydantic>=2.7",
+  "pydantic-settings>=2.2",
+  "pypdf>=4.0",
+  "PyYAML>=6.0",
+  "python-docx>=1.1",
+  "python-slugify>=8.0",
+  "rich>=13.7",
+  "typer>=0.12",
+]
+
+[project.optional-dependencies]
+dev = [
+  "hypothesis>=6.100",
+  "mypy>=1.10",
+  "pytest>=8.0",
+  "pytest-cov>=5.0",
+  "ruff>=0.6",
+  "types-PyYAML>=6.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/contexte/contexte"
+Documentation = "https://github.com/contexte/contexte/tree/main/docs"
+Issues = "https://github.com/contexte/contexte/issues"
+
+[project.scripts]
+ctx = "contexte.cli.app:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/contexte"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "C4", "T20", "RUF"]
+ignore = ["E501", "B008"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.mypy]
+python_version = "3.11"
+packages = ["contexte"]
+ignore_missing_imports = true
+warn_unused_ignores = false
+strict = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--cov=contexte --cov-report=term-missing"
+
+[tool.coverage.run]
+source = ["src/contexte"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+skip_empty = true
+fail_under = 75

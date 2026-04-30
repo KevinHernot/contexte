@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.coverage
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+dist/
+build/
+.venv/
+venv/
+
+# Contexte artifacts
+*.ctxpack
+*.ctxpack.tmp/
+reports/
+chunks.jsonl
+normalized/
+contexte_codebase_prompt.txt
+
+# OS/editor
+.DS_Store
+.vscode/
+.idea/

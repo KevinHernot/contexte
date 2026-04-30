@@ -1,0 +1,7 @@
+{
+  "title": "JSON Fixture",
+  "items": [
+    {"id": 1, "text": "alpha"},
+    {"id": 2, "text": "beta"}
+  ]
+}

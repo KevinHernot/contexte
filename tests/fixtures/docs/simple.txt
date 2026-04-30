@@ -1,0 +1,3 @@
+Plain text fixture for Contexte.
+
+It contains two paragraphs so the text decoder can create multiple paragraph blocks.
