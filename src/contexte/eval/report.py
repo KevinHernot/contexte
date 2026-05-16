@@ -61,6 +61,35 @@ def render_eval_html(report: BasicEvalReport) -> str:
   </div>
   <h2>Score explanation</h2>
   <ul>{explanation_items}</ul>
+  
+  <h2>Security analysis</h2>
+  <div class="card">
+    <table style="width: 100%; border-collapse: collapse; margin-top: 1rem;">
+      <thead>
+        <tr style="text-align: left; border-bottom: 2px solid #edf0f7;">
+          <th style="padding: 0.5rem;">Type</th>
+          <th style="padding: 0.5rem;">Label</th>
+          <th style="padding: 0.5rem;">Preview (Redaction Simulation)</th>
+          <th style="padding: 0.5rem;">Explanation & Recommendation</th>
+        </tr>
+      </thead>
+      <tbody>
+        {"".join(f'''
+        <tr style="border-bottom: 1px solid #edf0f7;">
+          <td style="padding: 0.5rem;"><code>{html.escape(f.type)}</code></td>
+          <td style="padding: 0.5rem;"><span style="background: #fee2e2; color: #991b1b; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem;">{html.escape(f.label)}</span></td>
+          <td style="padding: 0.5rem;"><code style="background: #f1f5f9; padding: 4px; border-radius: 4px;">{html.escape(f.text_preview or "")}</code></td>
+          <td style="padding: 0.5rem; font-size: 0.9rem;">
+            <strong>Risk:</strong> {html.escape(f.explanation or "None")}<br>
+            <strong>Action:</strong> {html.escape(f.recommendation or "Review required.")}
+          </td>
+        </tr>
+        ''' for f in report.security_findings[:20]) or '<tr><td colspan="4" style="padding: 1rem; text-align: center;">No security findings detected.</td></tr>'}
+      </tbody>
+    </table>
+    {f'<p style="padding: 1rem; color: #6b7280; font-size: 0.8rem;">Showing first 20 of {len(report.security_findings)} findings.</p>' if len(report.security_findings) > 20 else ""}
+  </div>
+
   <h2>Top warnings</h2>
   <ul>{warning_items or "<li>No warnings.</li>"}</ul>
   <h2>Machine-readable report</h2>

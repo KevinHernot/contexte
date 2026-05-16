@@ -21,12 +21,15 @@ def register(app: typer.Typer) -> None:
         json_output: Annotated[
             bool, typer.Option("--json", help="Print machine-readable JSON.")
         ] = False,
+        strict: Annotated[
+            bool, typer.Option("--strict", help="Fail on warnings as well as errors.")
+        ] = False,
         quiet: Annotated[bool, typer.Option("--quiet", help="Suppress human output.")] = False,
     ) -> None:
         result = PackReader(pack, skip_checksums=skip_checksums).validate()
         if json_output:
             print_json(result)
-            if not result.valid:
+            if not result.valid or (strict and result.warnings):
                 raise typer.Exit(1)
             return
         if not quiet:
@@ -45,5 +48,7 @@ def register(app: typer.Typer) -> None:
                 console.print(f"[red]error[/red] {error}")
             for warning in result.warnings:
                 console.print(f"[yellow]warning[/yellow] {warning}")
-        if not result.valid:
+        if not result.valid or (strict and result.warnings):
+            if strict and result.warnings and result.valid:
+                console.print("[red]Validation failed due to --strict mode (warnings found).[/red]")
             raise typer.Exit(1)

@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections import Counter
 from collections.abc import Iterable
 from pathlib import Path
+from typing import Callable
 
 from pydantic import BaseModel, Field
 
@@ -23,6 +24,7 @@ class ProbeResult(BaseModel):
     file_types: dict[str, int] = Field(default_factory=dict)
     supported_files: list[str] = Field(default_factory=list)
     unsupported_files: list[str] = Field(default_factory=list)
+    explanations: dict[str, str] = Field(default_factory=dict)
     warnings: list[str] = Field(default_factory=list)
 
 
@@ -59,6 +61,7 @@ def probe_path(
     include: Iterable[str] | None = None,
     exclude: Iterable[str] | None = None,
     supported_extensions: set[str] | None = None,
+    explainer: Callable[[Path], str] | None = None,
 ) -> ProbeResult:
     supported_extensions = supported_extensions or SUPPORTED_EXTENSIONS
     if not input_path.exists():
@@ -81,6 +84,11 @@ def probe_path(
     warnings = []
     if unsupported_files:
         warnings.append("unsupported_files_detected")
+    explanations = {}
+    if explainer:
+        for path in files:
+            explanations[str(path)] = explainer(path)
+
     return ProbeResult(
         path=str(input_path),
         exists=True,
@@ -92,6 +100,7 @@ def probe_path(
         file_types=dict(sorted(type_counts.items())),
         supported_files=supported_files,
         unsupported_files=unsupported_files,
+        explanations=explanations,
         warnings=warnings,
     )
 

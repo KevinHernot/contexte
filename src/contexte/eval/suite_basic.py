@@ -13,15 +13,25 @@ from contexte.ir.models import (
     SecurityFinding,
 )
 from contexte.pack.reader import PackReader
+from contexte.plugins.api import EvalMetric
 
 
-def evaluate_pack(path: Path) -> BasicEvalReport:
+def evaluate_pack(path: Path, reference_path: Path | None = None) -> BasicEvalReport:
     reader = PackReader(path)
+    reference_reader = PackReader(reference_path) if reference_path else None
+    
+    from contexte.plugins.loader import get_plugin_registry
+
+    registry = get_plugin_registry()
+    
     return evaluate_values(
         documents=list(reader.iter_documents()),
         chunks=list(reader.iter_chunks()),
         findings=list(reader.iter_findings()),
         build_report=reader.build_report(),
+        reference_documents=list(reference_reader.iter_documents()) if reference_reader else None,
+        reference_chunks=list(reference_reader.iter_chunks()) if reference_reader else None,
+        plugin_metrics=registry.metrics,
     )
 
 
@@ -31,6 +41,9 @@ def evaluate_values(
     chunks: list[ContextChunk],
     findings: list[SecurityFinding],
     build_report: BuildReport,
+    reference_documents: list[ContextDocument] | None = None,
+    reference_chunks: list[ContextChunk] | None = None,
+    plugin_metrics: list[EvalMetric] | None = None,
 ) -> BasicEvalReport:
     lengths = [chunk.char_count for chunk in chunks]
     empty_documents = sum(
@@ -59,6 +72,28 @@ def evaluate_values(
         secret_finding_count=secret_count,
         avg_chunk_chars=average(lengths),
     )
+
+    if reference_documents is not None:
+        ref_ids = {doc.id for doc in reference_documents}
+        curr_ids = {doc.id for doc in documents}
+        missing = ref_ids - curr_ids
+        recall = len(ref_ids - missing) / len(ref_ids) if ref_ids else 1.0
+        
+        if recall < 1.0:
+            penalty = 30 * (1.0 - recall)
+            score -= penalty
+            explanation.append(f"-{penalty:.1f}: document recall {recall:.1%} (missing {len(missing)} docs from reference).")
+        else:
+            explanation.append("+0.0: document recall is 100% (matches reference).")
+
+    plugin_results = {}
+    if plugin_metrics:
+        for metric in plugin_metrics:
+            try:
+                plugin_results[metric.id] = metric.compute(documents, chunks)
+            except Exception as exc:
+                warnings.append(f"plugin_metric_error:{metric.id}:{exc}")
+
     return BasicEvalReport(
         document_count=len(documents),
         chunk_count=len(chunks),
@@ -75,6 +110,8 @@ def evaluate_values(
         pii_finding_count=pii_count,
         secret_finding_count=secret_count,
         prompt_injection_finding_count=prompt_count,
+        security_findings=findings,
+        plugin_metrics=plugin_results,
         warnings=sorted(set(warnings)),
         rag_readiness_score=score,
         score_explanation=explanation,

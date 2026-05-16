@@ -13,6 +13,7 @@ plugins_app = typer.Typer(help="Inspect optional Contexte plugins.", no_args_is_
 @plugins_app.command("list")
 def list_plugins(
     json_output: bool = typer.Option(False, "--json", help="Print machine-readable JSON."),
+    quiet: bool = typer.Option(False, "--quiet", help="Suppress human output."),
 ) -> None:
     registry = load_plugins()
     payload = {
@@ -24,15 +25,16 @@ def list_plugins(
     if json_output:
         print_json(payload)
         return
-    console.print(
-        summary_table(
-            "Contexte Plugins",
-            [
-                (key.replace("_", " ").title(), ", ".join(values) or "none")
-                for key, values in payload.items()
-            ],
+    if not quiet:
+        console.print(
+            summary_table(
+                "Contexte Plugins",
+                [
+                    (key.replace("_", " ").title(), ", ".join(values) or "none")
+                    for key, values in payload.items()
+                ],
+            )
         )
-    )
 
 
 def register(app: typer.Typer) -> None:

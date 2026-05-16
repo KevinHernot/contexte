@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from contexte.constants import CTXPACK_SCHEMA_VERSION
+from contexte.constants import CTXPACK_SCHEMA_VERSION, MAX_DECOMPRESSED_SIZE
 from contexte.core.errors import PackError
 from contexte.ir.models import BuildReport, ContextChunk, ContextDocument, SecurityFinding
 from contexte.ir.validate import validate_chunk, validate_document, validate_manifest
@@ -83,10 +83,30 @@ class PackReader:
                     )
                 if not self.skip_checksums:
                     errors.extend(_validate_checksums(archive, manifest.checksums))
+                if BUILD_REPORT_JSON in names:
+                    report = BuildReport.model_validate_json(_read_text(archive, BUILD_REPORT_JSON))
+                    warnings.extend(report.warnings)
+                doc_ids: set[str] = set()
+                doc_count = 0
                 for value in _iter_jsonl(archive, DOCUMENTS_JSONL):
-                    errors.extend(validate_document(ContextDocument.model_validate(value)))
+                    doc = ContextDocument.model_validate(value)
+                    doc_ids.add(doc.id)
+                    doc_count += 1
+                    errors.extend(validate_document(doc))
+                
+                chunk_count = 0
                 for value in _iter_jsonl(archive, CHUNKS_JSONL):
-                    errors.extend(validate_chunk(ContextChunk.model_validate(value)))
+                    chunk = ContextChunk.model_validate(value)
+                    chunk_count += 1
+                    errors.extend(validate_chunk(chunk))
+                    if chunk.document_id not in doc_ids:
+                        errors.append(f"Chunk {chunk.id} references missing document {chunk.document_id}")
+
+                if manifest.source_summary.document_count != doc_count:
+                    errors.append(f"Manifest document count mismatch: {manifest.source_summary.document_count} != {doc_count}")
+                if manifest.source_summary.chunk_count != chunk_count:
+                    errors.append(f"Manifest chunk count mismatch: {manifest.source_summary.chunk_count} != {chunk_count}")
+
                 json.loads(_read_text(archive, CHECKSUMS_JSON))
         except (zipfile.BadZipFile, OSError, ValueError, json.JSONDecodeError) as exc:
             errors.append(str(exc))
@@ -99,7 +119,19 @@ class PackReader:
     def _zip(self) -> zipfile.ZipFile:
         if not self.path.exists():
             raise PackError(f"Pack does not exist: {self.path}")
-        return zipfile.ZipFile(self.path, "r")
+        archive = zipfile.ZipFile(self.path, "r")
+        total_size = 0
+        for info in archive.infolist():
+            if info.filename.startswith("/") or ".." in info.filename:
+                archive.close()
+                raise PackError(f"Malicious pack detected: unsafe filename '{info.filename}'")
+            total_size += info.file_size
+        if total_size > MAX_DECOMPRESSED_SIZE:
+            archive.close()
+            raise PackError(
+                f"Pack exceeds maximum allowed size ({total_size} > {MAX_DECOMPRESSED_SIZE})"
+            )
+        return archive
 
 
 def _read_text(archive: zipfile.ZipFile, name: str) -> str:

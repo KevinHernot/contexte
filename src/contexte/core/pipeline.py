@@ -13,15 +13,22 @@ from contexte.chunkers.heading import HeadingChunker
 from contexte.chunkers.semantic_placeholder import SemanticChunkerPlaceholder
 from contexte.core.config import PipelineConfig, load_config, merge_cli_overrides
 from contexte.core.discovery import ProbeResult, discover_files, probe_path
-from contexte.core.errors import ConfigError
+from contexte.core.errors import ConfigError, PackError
 from contexte.core.hashing import sha256_file, stable_json_hash
 from contexte.core.ids import document_id
 from contexte.decoders.base import DecodeContext
 from contexte.decoders.registry import default_registry
-from contexte.ir.models import BuildReport, ContextChunk, ContextDocument, SecurityFinding
+from contexte.ir.models import (
+    BuildReport,
+    ChunkingStats,
+    ContextChunk,
+    ContextDocument,
+    SecurityFinding,
+)
 from contexte.normalizers.dedupe import annotate_duplicate_chunks
 from contexte.normalizers.metadata import source_ref_for_path
 from contexte.pack.manifest import PackManifest
+from contexte.pack.reader import PackReader
 from contexte.pack.writer import write_pack
 from contexte.security.scanners import scan_chunk_security, scan_document_security
 
@@ -39,11 +46,19 @@ class BuildResult:
 def probe(input_path: Path, *, config_path: Path | None = None) -> ProbeResult:
     config = load_config(config_path)
     registry = default_registry()
+
+    def explainer(path: Path) -> str:
+        from contexte.ir.models import SourceRef
+
+        ref = SourceRef(uri=str(path), type="file", original_path=str(path))
+        return registry.explain_support(ref)
+
     return probe_path(
         input_path,
         include=config.input.include,
         exclude=config.input.exclude,
         supported_extensions=registry.supported_extensions(),
+        explainer=explainer,
     )
 
 
@@ -109,7 +124,7 @@ def build_context_pack(
             unsupported_count += 1
             warnings.append(f"unsupported_file:{path}")
             continue
-        doc_id = document_id(source_hash, source_ref.uri)
+        doc_id = document_id(source_hash, source_ref.original_path or source_ref.uri)
         context = DecodeContext(
             source_root=source_root,
             document_id=doc_id,
@@ -135,18 +150,43 @@ def build_context_pack(
             failed_count += 1
             warnings.append(f"empty_document:{path}")
             continue
-        findings.extend(scan_document_security(document))
+        findings.extend(
+            scan_document_security(
+                document,
+                pii=config.security.pii,
+                secrets=config.security.secrets,
+                prompt_injection=config.security.prompt_injection,
+            )
+        )
         document_chunks = chunker_impl.chunk(document)
         if not document_chunks:
             warnings.append(f"no_chunks:{path}")
         for chunk in document_chunks:
-            findings.extend(scan_chunk_security(chunk))
+            findings.extend(
+                scan_chunk_security(
+                    chunk,
+                    pii=config.security.pii,
+                    secrets=config.security.secrets,
+                    prompt_injection=config.security.prompt_injection,
+                )
+            )
         documents.append(document)
         chunks.extend(document_chunks)
 
     duplicate_chunk_ratio = annotate_duplicate_chunks(chunks)
     if duplicate_chunk_ratio:
         warnings.append(f"duplicate_chunk_ratio:{duplicate_chunk_ratio:.3f}")
+
+    chunk_lengths = [len(c.text) for c in chunks]
+    chunking_stats = None
+    if chunk_lengths:
+        chunking_stats = ChunkingStats(
+            min_chars=min(chunk_lengths),
+            max_chars=max(chunk_lengths),
+            avg_chars=sum(chunk_lengths) / len(chunk_lengths),
+            median_chars=sorted(chunk_lengths)[len(chunk_lengths) // 2],
+            total_chars=sum(chunk_lengths),
+        )
 
     build_report = BuildReport(
         source_root=str(input_path),
@@ -156,6 +196,7 @@ def build_context_pack(
         failed_file_count=failed_count,
         document_count=len(documents),
         chunk_count=len(chunks),
+        chunking_stats=chunking_stats,
         security_finding_count=len(findings),
         warnings=warnings,
         errors=errors,
@@ -172,6 +213,11 @@ def build_context_pack(
         pipeline_config=config_payload,
         force=force,
     )
+
+    validation = PackReader(output_path).validate()
+    if not validation.valid:
+        raise PackError(f"Post-build validation failed:\n" + "\n".join(validation.errors))
+
     return BuildResult(
         output=output_path,
         manifest=manifest,

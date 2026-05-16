@@ -1,6 +1,10 @@
 # CLI reference
 
-All commands support `--help`. Commands that print structured data support `--json`.
+Common options:
+- `--help`: Show usage information.
+- `--json`: Print machine-readable JSON output.
+- `--quiet`: Suppress human-oriented progress and summary output.
+- `--verbose`: Show additional details and explanations.
 
 ## `ctx probe`
 
@@ -61,8 +65,11 @@ Export chunks or normalized documents.
 
 ```bash
 ctx export docs.ctxpack --to jsonl --output chunks.jsonl
+ctx export docs.ctxpack --to jsonl --output chunks.jsonl --redact
 ctx export docs.ctxpack --to markdown --output normalized/
 ```
+
+The optional `--redact` flag replaces detected PII and secrets with `[REDACTED:label]` placeholders in the export only. The canonical `.ctxpack` archive is never modified.
 
 ## `ctx report`
 

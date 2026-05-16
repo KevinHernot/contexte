@@ -32,7 +32,14 @@ class DecoderRegistry:
         for decoder in self.decoders:
             if extension in decoder.supported_extensions:
                 return decoder
-        return None
+    def explain_support(self, source: SourceRef) -> str:
+        for decoder in self.decoders:
+            if decoder.can_decode(source):
+                return decoder.explain_support(source)
+        extension = Path(source.original_path or source.uri).suffix.lower()
+        if not extension:
+            return "No extension found; cannot infer format."
+        return f"Extension {extension} is not currently supported by any registered decoder."
 
     def supported_extensions(self) -> set[str]:
         extensions: set[str] = set()

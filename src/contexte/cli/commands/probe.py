@@ -22,6 +22,9 @@ def register(app: typer.Typer) -> None:
             bool, typer.Option("--json", help="Print machine-readable JSON.")
         ] = False,
         verbose: Annotated[bool, typer.Option("--verbose", help="Show file lists.")] = False,
+        explain: Annotated[
+            bool, typer.Option("--explain", help="Show support explanation per file.")
+        ] = False,
         quiet: Annotated[bool, typer.Option("--quiet", help="Suppress human output.")] = False,
     ) -> None:
         try:
@@ -51,8 +54,10 @@ def register(app: typer.Typer) -> None:
                     ],
                 )
             )
-            if verbose:
+            if verbose or explain:
                 for item in result.supported_files:
-                    console.print(f"[green]supported[/green] {item}")
+                    explanation = f" ({result.explanations.get(item)})" if explain else ""
+                    console.print(f"[green]supported[/green] {item}{explanation}")
                 for item in result.unsupported_files:
-                    console.print(f"[yellow]unsupported[/yellow] {item}")
+                    explanation = f" ({result.explanations.get(item)})" if explain else ""
+                    console.print(f"[yellow]unsupported[/yellow] {item}{explanation}")

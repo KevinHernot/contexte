@@ -1,0 +1,255 @@
+{
+  "$defs": {
+    "ChunkQuality": {
+      "properties": {
+        "extraction_confidence": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Extraction Confidence"
+        },
+        "chunk_coherence_score": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Chunk Coherence Score"
+        },
+        "duplicate_score": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duplicate Score"
+        },
+        "has_citation": {
+          "default": false,
+          "title": "Has Citation",
+          "type": "boolean"
+        },
+        "warnings": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Warnings",
+          "type": "array"
+        }
+      },
+      "title": "ChunkQuality",
+      "type": "object"
+    },
+    "ChunkSecurity": {
+      "properties": {
+        "pii_count": {
+          "default": 0,
+          "title": "Pii Count",
+          "type": "integer"
+        },
+        "secret_count": {
+          "default": 0,
+          "title": "Secret Count",
+          "type": "integer"
+        },
+        "prompt_injection_score": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Prompt Injection Score"
+        },
+        "labels": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Labels",
+          "type": "array"
+        },
+        "allowed_groups": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Allowed Groups",
+          "type": "array"
+        }
+      },
+      "title": "ChunkSecurity",
+      "type": "object"
+    },
+    "ChunkSourceRef": {
+      "properties": {
+        "document_id": {
+          "title": "Document Id",
+          "type": "string"
+        },
+        "block_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Block Ids",
+          "type": "array"
+        },
+        "source_uri": {
+          "title": "Source Uri",
+          "type": "string"
+        },
+        "page_start": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Page Start"
+        },
+        "page_end": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Page End"
+        },
+        "line_start": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Line Start"
+        },
+        "line_end": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Line End"
+        }
+      },
+      "required": [
+        "document_id",
+        "block_ids",
+        "source_uri"
+      ],
+      "title": "ChunkSourceRef",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "default": "0.1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "document_id": {
+      "title": "Document Id",
+      "type": "string"
+    },
+    "text": {
+      "title": "Text",
+      "type": "string"
+    },
+    "title": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Title"
+    },
+    "section_path": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Section Path",
+      "type": "array"
+    },
+    "source_refs": {
+      "items": {
+        "$ref": "#/$defs/ChunkSourceRef"
+      },
+      "title": "Source Refs",
+      "type": "array"
+    },
+    "token_count_estimate": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Token Count Estimate"
+    },
+    "char_count": {
+      "title": "Char Count",
+      "type": "integer"
+    },
+    "metadata": {
+      "additionalProperties": true,
+      "title": "Metadata",
+      "type": "object"
+    },
+    "security": {
+      "$ref": "#/$defs/ChunkSecurity"
+    },
+    "quality": {
+      "$ref": "#/$defs/ChunkQuality"
+    }
+  },
+  "required": [
+    "id",
+    "document_id",
+    "text",
+    "source_refs",
+    "char_count"
+  ],
+  "title": "ContextChunk",
+  "type": "object"
+}

@@ -37,17 +37,29 @@ def register(app: typer.Typer) -> None:
             print_json(payload)
             return
         if not quiet:
-            console.print(
-                summary_table(
-                    "Contexte Pack",
-                    [
-                        ("Path", pack),
-                        ("Schema", manifest.schema_version),
-                        ("Documents", manifest.source_summary.document_count),
-                        ("Chunks", manifest.source_summary.chunk_count),
-                        ("Security findings", findings_count),
-                        ("Build warnings", len(build_report.warnings)),
-                        ("Eval available", manifest.features.has_eval),
-                    ],
+            rows = [
+                ("Path", pack),
+                ("Pack ID", manifest.pack_id),
+                ("Schema", manifest.schema_version),
+                ("Documents", manifest.source_summary.document_count),
+                ("Chunks", manifest.source_summary.chunk_count),
+            ]
+            if build_report.chunking_stats:
+                rows.append(
+                    ("Avg chunk size", f"{build_report.chunking_stats.avg_chars:.0f} chars")
                 )
+                rows.append(("Max chunk size", f"{build_report.chunking_stats.max_chars} chars"))
+
+            rows.extend(
+                [
+                    ("Security findings", findings_count),
+                    ("Build warnings", len(build_report.warnings)),
+                    ("Eval available", manifest.features.has_eval),
+                ]
             )
+
+            console.print(summary_table("Contexte Pack Overview", rows))
+
+            if manifest.security_summary.labels:
+                labels = ", ".join(manifest.security_summary.labels)
+                console.print(f"[bold red]Security Labels:[/bold red] [yellow]{labels}[/yellow]")

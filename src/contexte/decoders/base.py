@@ -36,6 +36,8 @@ class Decoder(Protocol):
 
     def can_decode(self, source: SourceRef) -> bool: ...
 
+    def explain_support(self, source: SourceRef) -> str: ...
+
     def decode(self, path: Path, context: DecodeContext) -> ContextDocument: ...
 
 
@@ -48,6 +50,12 @@ class BaseDecoder:
         extension = Path(source.original_path or source.uri).suffix.lower()
         media_type = source.media_type or ""
         return extension in self.supported_extensions or media_type in self.supported_media_types
+
+    def explain_support(self, source: SourceRef) -> str:
+        extension = Path(source.original_path or source.uri).suffix.lower()
+        if self.can_decode(source):
+            return f"Supported via {self.id} decoder (matches {extension})"
+        return f"Not supported by {self.id} (no match for {extension})"
 
     def block(
         self,

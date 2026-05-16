@@ -13,7 +13,7 @@ It provides:
 - RAG readiness evaluation reports;
 - exports to JSONL and normalized Markdown.
 
-> Status: v0.1 alpha. The core is local-first, offline-friendly, and intentionally lightweight. Schema and plugin APIs may still evolve before v1.0.
+> Status: v0.1 alpha. The core is local-first, offline-friendly, and intentionally lightweight. See [Implementation Status](docs/status.md) for details on spec parity.
 
 ## Why?
 
@@ -78,6 +78,16 @@ Prompt injection warnings: 0
 - **Chunk**: a retrieval-ready unit with stable ID, provenance, security metadata, and quality metadata.
 - **Context Pack**: a `.ctxpack` ZIP archive containing documents, chunks, sources, checksums, reports, and metadata.
 - **Eval report**: a machine-readable and human-readable quality/safety report.
+
+## Core guarantees
+
+Contexte is designed around a set of "hard" guarantees that distinguish it from standard ingestion scripts:
+
+1.  **Local-first & No Network**: The core library and CLI will never perform network calls or upload data.
+2.  **Deterministic Layout**: Given the same inputs and config, a `.ctxpack` will have a deterministic internal structure and member order.
+3.  **Integrity & Trust**: Every pack includes mandatory checksums and a verifiable manifest.
+4.  **Provenance**: Every chunk is linked to its source document, block IDs, and original URI.
+5.  **Auditability**: Security findings and extraction errors are preserved as first-class metadata, never suppressed.
 
 ## CLI commands
 

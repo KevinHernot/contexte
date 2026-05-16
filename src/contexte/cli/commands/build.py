@@ -68,19 +68,27 @@ def register(app: typer.Typer) -> None:
                 }
             )
             return
+
         if not quiet:
-            console.print(
-                summary_table(
-                    "Contexte Build",
-                    [
-                        ("Output", result.output),
-                        ("Pack ID", result.manifest.pack_id),
-                        ("Documents", result.manifest.source_summary.document_count),
-                        ("Chunks", result.manifest.source_summary.chunk_count),
-                        ("Security findings", result.build_report.security_finding_count),
-                        ("Warnings", len(result.build_report.warnings)),
-                    ],
+            rows = [
+                ("Output", result.output),
+                ("Pack ID", result.manifest.pack_id),
+                ("Documents", result.manifest.source_summary.document_count),
+                ("Chunks", result.manifest.source_summary.chunk_count),
+            ]
+            if result.build_report.chunking_stats:
+                rows.append(
+                    ("Avg chunk size", f"{result.build_report.chunking_stats.avg_chars:.0f} chars")
                 )
+                rows.append(("Max chunk size", f"{result.build_report.chunking_stats.max_chars} chars"))
+
+            rows.extend(
+                [
+                    ("Security findings", result.build_report.security_finding_count),
+                    ("Warnings", len(result.build_report.warnings)),
+                ]
             )
+
+            console.print(summary_table("Contexte Build", rows))
             if report_path:
                 console.print(f"[green]Report:[/green] {report_path}")

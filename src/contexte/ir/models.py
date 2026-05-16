@@ -128,6 +128,8 @@ class ChunkSecurity(BaseModel):
 
 
 class ChunkQuality(BaseModel):
+    score: float = 1.0
+    labels: list[str] = Field(default_factory=list)
     extraction_confidence: float | None = None
     chunk_coherence_score: float | None = None
     duplicate_score: float | None = None
@@ -159,6 +161,7 @@ class SecurityFinding(BaseModel):
     severity: FindingSeverity
     text_preview: str | None = None
     location: SourceSpan | None = None
+    explanation: str | None = None
     recommendation: str | None = None
 
 
@@ -178,9 +181,20 @@ class BasicEvalReport(BaseModel):
     pii_finding_count: int
     secret_finding_count: int
     prompt_injection_finding_count: int
+    security_findings: list[SecurityFinding] = Field(default_factory=list)
+    plugin_metrics: dict[str, Any] = Field(default_factory=dict)
     warnings: list[str]
     rag_readiness_score: int
     score_explanation: list[str]
+
+
+class ChunkingStats(BaseModel):
+    min_chars: int = 0
+    max_chars: int = 0
+    avg_chars: float = 0.0
+    median_chars: float = 0.0
+    total_chars: int = 0
+    overlap_ratio: float = 0.0
 
 
 class BuildReport(BaseModel):
@@ -195,6 +209,7 @@ class BuildReport(BaseModel):
     empty_document_count: int = 0
     document_count: int
     chunk_count: int
+    chunking_stats: ChunkingStats | None = None
     security_finding_count: int
     warnings: list[str] = Field(default_factory=list)
     errors: list[str] = Field(default_factory=list)
