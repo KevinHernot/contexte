@@ -26,8 +26,14 @@ This document tracks the delta between the [Complete Project Specification](rfc/
 | **`validate`** | Optional | Yes | Yes | Yes |
 | **`diff`** | Optional | Yes | Yes | Yes |
 | **`schemas`** | Optional | Yes | Yes | Yes |
+| **`sign`** | Optional | Yes | No | Yes |
+| **`verify`** | Optional | Yes | No | Yes |
 | **`serve`** | Optional | Placeholder | - | - |
 | **`plugins`** | Optional | Yes | Yes | Yes |
+
+`ctx sign` and `ctx verify` deal with cryptographic authenticity of the
+manifest (Ed25519). `ctx validate` is independent: it checks structural
+integrity and member checksums. The two are complementary, not redundant.
 
 ## Context IR (Intermediate Representation)
 
@@ -61,12 +67,16 @@ This document tracks the delta between the [Complete Project Specification](rfc/
 | **Prompt Injection** | Heuristic | Yes | Basic |
 | **Redaction** | Mandatory | Yes | Yes (Export) |
 | **ACL Metadata** | Roadmap | No | No |
-| **Pack Signing** | Roadmap | No | No |
+| **Pack Signing** | Roadmap | Yes (Ed25519, alpha) | Manual via `ctx sign` / `--sign` |
 
 ## Roadmap Items Status
 
-- [x] **v0.1**: Local context compiler, `.ctxpack`, Context IR, Decoders, Chunking, Eval, Security scans, JSONL/Markdown export.
-- [ ] **v0.2**: Local HTTP read-only adapter, LlamaIndex/LangChain exporters, Stabilized plugin API.
-- [ ] **v0.3**: Experimental MCP read-only adapter, MCP security scanner, Manifest signing.
-- [ ] **v0.4**: Stronger PII detection, ACL metadata, Policy engine.
+- [x] **v0.1**: Local context compiler, `.ctxpack`, Context IR, Decoders, Chunking, Eval, Security scans, JSONL/Markdown export, Ed25519 manifest signing (alpha), portable benchmark suite.
+- [ ] **v0.2 (interop)**: LlamaIndex/LangChain exporters hardening, Stabilized plugin API, Local HTTP read-only adapter, Decoder integration polish.
+- [ ] **v0.3**: Experimental MCP read-only adapter, MCP security scanner, Tool-description sanitizer.
+- [ ] **v0.4**: Stronger PII detection, ACL metadata, Policy engine, OCR / Docling / Unstructured plugins.
 - [ ] **v1.0**: Stable IR, stable `.ctxpack`, migration tools, production docs.
+
+LlamaIndex and LangChain exporters already exist as preview implementations
+(`ctx export --to llamaindex|langchain`) but their schema and metadata
+contracts are not yet stable; that is the v0.2 deliverable.

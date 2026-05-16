@@ -21,6 +21,7 @@ Build a portable context pack.
 
 ```bash
 ctx build ./docs --to docs.ctxpack --chunker heading --max-chars 3000 --report --force
+ctx build ./docs --to docs.ctxpack --sign ./keys/contexte_private.pem
 ```
 
 Options:
@@ -30,16 +31,21 @@ Options:
 - `--max-chars`: maximum chunk size;
 - `--include` / `--exclude`: repeated glob filters;
 - `--report`: write adjacent HTML build report;
-- `--force`: overwrite output.
+- `--force`: overwrite output;
+- `--sign`: Ed25519 private key used to sign `manifest.json` in-place
+  (equivalent to running `ctx sign` after the build).
 
 `semantic` is a v0.1 placeholder and reports that `contexte-semantic` is required.
 
 ## `ctx validate`
 
-Validate manifest, required files, JSONL, checksums, and models.
+Validate **structural integrity**: manifest, required files, JSONL, member
+checksums, and IR models. Does **not** check cryptographic authenticity —
+use `ctx verify` for that.
 
 ```bash
 ctx validate docs.ctxpack
+ctx validate docs.ctxpack --strict --skip-checksums
 ```
 
 ## `ctx inspect`
@@ -67,7 +73,13 @@ Export chunks or normalized documents.
 ctx export docs.ctxpack --to jsonl --output chunks.jsonl
 ctx export docs.ctxpack --to jsonl --output chunks.jsonl --redact
 ctx export docs.ctxpack --to markdown --output normalized/
+ctx export docs.ctxpack --to langchain --output chunks.langchain.json
+ctx export docs.ctxpack --to llamaindex --output chunks.llamaindex.json
 ```
+
+`langchain` and `llamaindex` are preview exporters: they produce JSON
+suitable for direct loading into their respective document/node loaders.
+Schema stabilisation is a v0.2 deliverable.
 
 The optional `--redact` flag replaces detected PII and secrets with `[REDACTED:label]` placeholders in the export only. The canonical `.ctxpack` archive is never modified.
 
@@ -78,6 +90,46 @@ Generate a human-readable eval report.
 ```bash
 ctx report docs.ctxpack --output report.html
 ```
+
+## `ctx sign`
+
+Sign a context pack's `manifest.json` with an Ed25519 private key. The
+signature is stored inside the pack at `metadata/signature.json`. Because
+the manifest pins every other pack member by checksum, signing it
+authenticates the entire pack.
+
+```bash
+# Sign with an existing key
+ctx sign docs.ctxpack --key ./keys/contexte_private.pem
+
+# Generate a fresh keypair into ./keys/ and sign with the new private key
+ctx sign docs.ctxpack --gen-key --output-dir ./keys
+```
+
+Options:
+
+- `--key`: path to an Ed25519 private key (PEM, PKCS#8);
+- `--gen-key`: generate a new keypair in `--output-dir` and use it;
+- `--output-dir`: directory for generated keys (default: `.`).
+
+The pack is rewritten in place; only `metadata/signature.json` is added.
+
+## `ctx verify`
+
+Verify a context pack's signature against a known public key.
+
+```bash
+ctx verify docs.ctxpack --key ./keys/contexte_public.pem
+```
+
+`ctx verify` performs both structural validation (same checks as
+`ctx validate`) and cryptographic verification of `manifest.json` against
+the supplied Ed25519 public key. Failure modes that are reported:
+
+- pack is not signed;
+- signature does not match the manifest under this public key;
+- pack contents have been tampered with after signing (the manifest's
+  member checksums no longer match).
 
 ## `ctx plugins list`
 

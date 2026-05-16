@@ -94,6 +94,7 @@ Contexte is designed around a set of "hard" guarantees that distinguish it from 
 ```bash
 ctx probe ./docs
 ctx build ./docs --to docs.ctxpack --report --force
+ctx build ./docs --to docs.ctxpack --sign ./keys/contexte_private.pem
 ctx validate docs.ctxpack
 ctx inspect docs.ctxpack --json
 ctx eval docs.ctxpack --report eval.html
@@ -101,8 +102,18 @@ ctx report docs.ctxpack --output report.html
 ctx export docs.ctxpack --to jsonl --output chunks.jsonl
 ctx export docs.ctxpack --to jsonl --output chunks.jsonl --redact
 ctx export docs.ctxpack --to markdown --output normalized/
+ctx export docs.ctxpack --to langchain --output chunks.langchain.json
+ctx export docs.ctxpack --to llamaindex --output chunks.llamaindex.json
+ctx sign docs.ctxpack --key ./keys/contexte_private.pem
+ctx verify docs.ctxpack --key ./keys/contexte_public.pem
 ctx plugins list
 ```
+
+`ctx validate` checks structural integrity (manifest, member files,
+checksums, IR models). `ctx verify` adds cryptographic authenticity of
+`manifest.json` against an Ed25519 public key — the two are
+complementary, not redundant. `ctx build --sign` is a convenience that
+runs the build and then signs the resulting pack in place.
 
 The optional `--redact` flag replaces detected PII and secrets with
 `[REDACTED:label]` placeholders in the export only; the canonical `.ctxpack`
