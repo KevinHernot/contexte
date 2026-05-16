@@ -29,6 +29,10 @@ All notable changes to Contexte will be documented in this file.
 - Added unit tests for IR validation (`validate_document`, `validate_chunk`,
   `validate_manifest`), JSON schema export, the v0.1 security policy, the
   redaction module, and signing/verification.
+- Added CLI integration tests for `ctx sign`, `ctx verify`, and
+  `ctx build --sign` covering: signature file creation, success with the
+  correct key, failure with a wrong key, failure on a tampered manifest,
+  and failure on an unsigned pack.
 
 ## 0.1.0 - 2026-04-29
 

@@ -26,8 +26,8 @@ This document tracks the delta between the [Complete Project Specification](rfc/
 | **`validate`** | Optional | Yes | Yes | Yes |
 | **`diff`** | Optional | Yes | Yes | Yes |
 | **`schemas`** | Optional | Yes | Yes | Yes |
-| **`sign`** | Optional | Yes | No | Yes |
-| **`verify`** | Optional | Yes | No | Yes |
+| **`sign`** | Optional | Yes | No | Yes (CLI tests) |
+| **`verify`** | Optional | Yes | No | Yes (CLI tests) |
 | **`serve`** | Optional | Placeholder | - | - |
 | **`plugins`** | Optional | Yes | Yes | Yes |
 

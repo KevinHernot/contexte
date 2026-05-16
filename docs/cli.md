@@ -94,8 +94,8 @@ ctx report docs.ctxpack --output report.html
 ## `ctx sign`
 
 Sign a context pack's `manifest.json` with an Ed25519 private key. The
-signature is stored inside the pack at `metadata/signature.json`. Because
-the manifest pins every other pack member by checksum, signing it
+signature is stored inside the pack at `signature.json`. Because the
+manifest pins every other pack member by checksum, signing it
 authenticates the entire pack.
 
 ```bash
@@ -112,7 +112,7 @@ Options:
 - `--gen-key`: generate a new keypair in `--output-dir` and use it;
 - `--output-dir`: directory for generated keys (default: `.`).
 
-The pack is rewritten in place; only `metadata/signature.json` is added.
+The pack is rewritten in place; only `signature.json` is added.
 
 ## `ctx verify`
 
