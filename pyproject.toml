@@ -31,6 +31,7 @@ dependencies = [
   "python-slugify>=8.0",
   "rich>=13.7",
   "typer>=0.12",
+  "cryptography>=42.0",
 ]
 
 [project.optional-dependencies]

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -70,8 +71,9 @@ def build_context_pack(
     include: list[str] | None = None,
     exclude: list[str] | None = None,
     chunker: str | None = None,
-    max_chars: int | None = None,
+    max_chars: int = 3000,
     force: bool = False,
+    private_key_path: Path | None = None,
 ) -> BuildResult:
     base_config = load_config(config_path)
     config = merge_cli_overrides(
@@ -93,7 +95,13 @@ def build_context_pack(
     files = discover_files(input_path, include=config.input.include, exclude=config.input.exclude)
     config_payload = config.model_dump(mode="json")
     config_hash = stable_json_hash(config_payload)
-    extracted_at = datetime.now(tz=UTC)
+    deterministic_ts = os.environ.get("CONTEXTE_DETERMINISTIC_TIMESTAMP")
+    if deterministic_ts:
+        extracted_at = datetime.fromisoformat(deterministic_ts)
+        if extracted_at.tzinfo is None:
+            extracted_at = extracted_at.replace(tzinfo=UTC)
+    else:
+        extracted_at = datetime.now(UTC)
 
     documents: list[ContextDocument] = []
     chunks: list[ContextChunk] = []
@@ -212,6 +220,7 @@ def build_context_pack(
         build_report=build_report,
         pipeline_config=config_payload,
         force=force,
+        private_key_path=private_key_path,
     )
 
     validation = PackReader(output_path).validate()

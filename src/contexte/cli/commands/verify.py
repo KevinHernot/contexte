@@ -16,13 +16,21 @@ def register(app: typer.Typer) -> None:
         pack: Annotated[Path, typer.Argument(help="Input .ctxpack path.")],
         key: Annotated[Path, typer.Option("--key", help="Path to public key.")] = None,
     ) -> None:
-        """[ALPHA] Verify a context pack signature."""
-        console.print("[yellow]ctx verify is an alpha feature.[/yellow]")
+        """Verify a context pack signature using a public Ed25519 key."""
+        from contexte.pack.reader import PackReader
+
         if not key:
-            console.print("[red]Error: --key is required for verification.[/red]")
-            raise typer.Exit(1)
-        
-        # Placeholder for actual verification logic
-        console.print(f"[dim]Would verify {pack} using {key}...[/dim]")
-        console.print("[red]Feature not yet implemented: requires 'cryptography' dependency.[/red]")
-        raise typer.Exit(1)
+            fail(ValueError("--key is required for verification."))
+
+        try:
+            reader = PackReader(pack, public_key_path=key)
+            result = reader.validate()
+            if result.valid:
+                console.print(f"[green]✓ Signature and integrity verified for {pack}[/green]")
+            else:
+                console.print(f"[red]✗ Verification failed for {pack}[/red]")
+                for err in result.errors:
+                    console.print(f"  - {err}")
+                raise typer.Exit(1)
+        except Exception as exc:
+            fail(exc)

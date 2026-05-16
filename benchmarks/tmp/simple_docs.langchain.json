@@ -1,0 +1,18 @@
+[
+  {
+    "page_content": "Simple Document\n\nThis is a simple document for benchmarking.\nIt has two paragraphs.",
+    "metadata": {
+      "source": "file:///Users/kevinhernot/OpenSource/contexte/benchmarks/corpora/simple_docs/doc1.md",
+      "title": "Simple Document",
+      "document_id": "doc_470826529d630aea",
+      "contexte_id": "doc_470826529d630aea",
+      "pack_id": "ctxpack_813fe35557e2ab9c",
+      "encoding": "utf-8",
+      "extension": ".md",
+      "filename": "doc1.md",
+      "modified_at": "2026-05-16T03:29:38.505145+00:00",
+      "relative_path": "doc1.md",
+      "size_bytes": 85
+    }
+  }
+]

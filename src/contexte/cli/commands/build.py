@@ -40,6 +40,7 @@ def register(app: typer.Typer) -> None:
             bool, typer.Option("--json", help="Print machine-readable JSON.")
         ] = False,
         quiet: Annotated[bool, typer.Option("--quiet", help="Suppress human output.")] = False,
+        sign: Annotated[Path | None, typer.Option("--sign", help="Private key for signing.")] = None,
     ) -> None:
         try:
             result = build_context_pack(
@@ -51,6 +52,7 @@ def register(app: typer.Typer) -> None:
                 chunker=chunker,
                 max_chars=max_chars,
                 force=force,
+                private_key_path=sign,
             )
             report_path = None
             if report:

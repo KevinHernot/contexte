@@ -1,0 +1,37 @@
+{
+  "build_warnings": 2,
+  "manifest": {
+    "checksums": {
+      "chunks/chunks.jsonl": "<dynamic>",
+      "documents/documents.jsonl": "<dynamic>",
+      "metadata/pipeline.json": "<dynamic>",
+      "metadata/sources.jsonl": "<dynamic>",
+      "normalized/markdown/doc_07a29b6530dc839e.md": "<dynamic>",
+      "normalized/markdown/doc_cb8a2368b4568d14.md": "<dynamic>",
+      "reports/build-report.json": "<dynamic>",
+      "security/findings.jsonl": "<dynamic>"
+    },
+    "contexte_version": "0.1.0",
+    "created_at": "2026-05-16T03:51:27.760785Z",
+    "created_by": "contexte",
+    "features": {
+      "has_chunks": true,
+      "has_documents": true,
+      "has_embeddings": false,
+      "has_eval": false,
+      "has_security_findings": false
+    },
+    "metadata": {
+      "build_report": "reports/build-report.json"
+    },
+    "pack_id": "ctxpack_0d63ce0b48304f1b",
+    "schema_version": "0.1.0",
+    "source_summary": {
+      "chunk_count": 2,
+      "document_count": 2,
+      "source_root": "<CORPORA>/duplicates"
+    }
+  },
+  "path": "<TMP>/duplicates.ctxpack",
+  "security_findings": 0
+}

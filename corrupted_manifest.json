@@ -1,0 +1,31 @@
+{
+  "checksums": {
+    "chunks/chunks.jsonl": "sha256:4ada3e769fefac473f001f2865dd61f39d5a060589d81dc66fc3f7cc541635bb",
+    "documents/documents.jsonl": "sha256:25a6d3b952c3245bfbb2ebf353bf12a026dedc34d2311f792acf0938f54c7764",
+    "metadata/pipeline.json": "sha256:6f10147ed58ab255ab540d2ebef8bb3f9c8aceb3618fac08a5707eab70845149",
+    "metadata/sources.jsonl": "sha256:6b19011cf785d90b755f092f20fa1698832ffe893eb350fcee18fe7ed7a86e26",
+    "normalized/markdown/doc_470826529d630aea.md": "sha256:d40f0bcf8e4c3832a53dd90f0780bdd38369fa0cb2bb3b77f6e87e75f6b57038",
+    "reports/build-report.json": "sha256:7e69a38c755f45b78b49fefa09357e4ba685c7bfb7236a8f44219f3785f6158d",
+    "security/findings.jsonl": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "contexte_version": "0.2.0",
+  "created_at": "2026-05-16T03:33:10.821484Z",
+  "created_by": "contexte",
+  "features": {
+    "has_chunks": true,
+    "has_documents": true,
+    "has_embeddings": false,
+    "has_eval": false,
+    "has_security_findings": false
+  },
+  "metadata": {
+    "build_report": "reports/build-report.json"
+  },
+  "pack_id": "ctxpack_813fe35557e2ab9c",
+  "schema_version": "0.2.0",
+  "source_summary": {
+    "chunk_count": 1,
+    "document_count": 1,
+    "source_root": "/Users/kevinhernot/OpenSource/contexte/benchmarks/corpora/simple_docs"
+  }
+}

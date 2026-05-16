@@ -9,6 +9,8 @@ import typer
 
 from contexte.cli.console import console, fail, print_json
 from contexte.exporters.jsonl import JsonlExporter
+from contexte.exporters.langchain import LangChainExporter
+from contexte.exporters.llamaindex import LlamaIndexExporter
 from contexte.exporters.markdown import MarkdownExporter
 from contexte.pack.reader import PackReader
 
@@ -17,7 +19,7 @@ def register(app: typer.Typer) -> None:
     @app.command("export")
     def export_cmd(
         pack: Annotated[Path, typer.Argument(help="Input .ctxpack path.")],
-        to: Annotated[str, typer.Option("--to", help="Export format: jsonl or markdown.")],
+        to: Annotated[str, typer.Option("--to", help="Export format: jsonl, markdown, langchain, or llamaindex.")],
         output: Annotated[Path, typer.Option("--output", help="Output file or directory.")],
         redact: Annotated[
             bool,
@@ -37,8 +39,12 @@ def register(app: typer.Typer) -> None:
                 JsonlExporter(redact=redact).export(reader, output)
             elif to == "markdown":
                 MarkdownExporter(redact=redact).export(reader, output)
+            elif to == "langchain":
+                LangChainExporter(redact=redact).export(reader, output)
+            elif to == "llamaindex":
+                LlamaIndexExporter(redact=redact).export(reader, output)
             else:
-                console.print("[red]Unsupported export format. Use jsonl or markdown.[/red]")
+                console.print("[red]Unsupported export format. Use jsonl, markdown, langchain, or llamaindex.[/red]")
                 raise typer.Exit(1)
         except Exception as exc:
             fail(exc)

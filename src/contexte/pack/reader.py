@@ -22,6 +22,7 @@ from contexte.pack.layout import (
     MANIFEST,
     REQUIRED_FILES,
     SECURITY_FINDINGS_JSONL,
+    SIGNATURE_JSON,
 )
 from contexte.pack.manifest import PackManifest
 
@@ -34,9 +35,16 @@ class PackValidationResult:
 
 
 class PackReader:
-    def __init__(self, path: Path, *, skip_checksums: bool = False) -> None:
+    def __init__(
+        self,
+        path: Path,
+        *,
+        skip_checksums: bool = False,
+        public_key_path: Path | None = None,
+    ) -> None:
         self.path = path
         self.skip_checksums = skip_checksums
+        self.public_key_path = public_key_path
 
     def manifest(self) -> PackManifest:
         with self._zip() as archive:
@@ -83,6 +91,16 @@ class PackReader:
                     )
                 if not self.skip_checksums:
                     errors.extend(_validate_checksums(archive, manifest.checksums))
+                
+                if SIGNATURE_JSON in names:
+                    sig_data = json.loads(_read_text(archive, SIGNATURE_JSON))
+                    if self.public_key_path:
+                        from contexte.core.signing import verify_signature
+                        if not verify_signature(archive.read(MANIFEST), sig_data["signature"], self.public_key_path):
+                            errors.append("Cryptographic signature verification failed")
+                elif self.public_key_path:
+                    errors.append("Public key provided but pack is not signed")
+
                 if BUILD_REPORT_JSON in names:
                     report = BuildReport.model_validate_json(_read_text(archive, BUILD_REPORT_JSON))
                     warnings.extend(report.warnings)

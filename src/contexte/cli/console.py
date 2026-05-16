@@ -17,7 +17,7 @@ err_console = Console(stderr=True)
 
 
 def print_json(value: Any) -> None:
-    console.print(json.dumps(to_jsonable(value), ensure_ascii=False, sort_keys=True, indent=2))
+    print(json.dumps(to_jsonable(value), ensure_ascii=False, sort_keys=True, indent=2))
 
 
 def fail(error: Exception) -> None:

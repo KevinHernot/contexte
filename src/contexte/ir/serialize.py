@@ -36,9 +36,12 @@ def dumps_json(value: Any, *, pretty: bool = False) -> str:
     )
 
 
-def write_json(path: Path, value: Any, *, pretty: bool = True) -> None:
+def write_json(path: Path, value: Any, *, pretty: bool = True) -> bytes:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(dumps_json(value, pretty=pretty) + "\n", encoding="utf-8")
+    content = dumps_json(value, pretty=pretty) + "\n"
+    content_bytes = content.encode("utf-8")
+    path.write_bytes(content_bytes)
+    return content_bytes
 
 
 def write_jsonl(path: Path, values: Iterable[Any]) -> None:

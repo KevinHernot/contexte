@@ -8,7 +8,12 @@ safer to share, without mutating the canonical Context Pack.
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from contexte.ir.models import SecurityFinding
+
+if TYPE_CHECKING:
+    from contexte.ir.models import ContextDocument
 
 #: Default set of finding types that should be redacted when redaction is enabled.
 DEFAULT_REDACTABLE_TYPES: frozenset[str] = frozenset({"pii", "secret"})
@@ -85,3 +90,31 @@ def redact_chunk_text(
 
     chunk_findings = [finding for finding in findings if finding.chunk_id == chunk_id]
     return redact_text(text, chunk_findings, redact_types=redact_types)
+
+
+def redact_document(
+    doc: ContextDocument,
+    findings: list[SecurityFinding],
+    *,
+    redact_types: frozenset[str] | set[str] = DEFAULT_REDACTABLE_TYPES,
+) -> ContextDocument:
+    """Return a copy of ``doc`` with all its blocks redacted."""
+    from contexte.ir.models import Block
+    
+    new_blocks = []
+    for block in doc.blocks:
+        block_findings = [f for f in findings if f.block_id == block.id]
+        new_text = redact_text(block.text or "", block_findings, redact_types=redact_types)
+        new_markdown = redact_text(block.markdown or "", block_findings, redact_types=redact_types)
+        new_blocks.append(
+            Block(
+                id=block.id,
+                type=block.type,
+                text=new_text or None,
+                markdown=new_markdown or None,
+                level=block.level,
+                metadata=block.metadata,
+            )
+        )
+    
+    return doc.model_copy(update={"blocks": new_blocks})

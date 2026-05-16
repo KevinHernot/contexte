@@ -23,6 +23,7 @@ from contexte.pack.layout import (
     NORMALIZED_MARKDOWN_DIR,
     PIPELINE_JSON,
     SECURITY_FINDINGS_JSONL,
+    SIGNATURE_JSON,
     SOURCES_JSONL,
 )
 from contexte.pack.manifest import PackFeatures, PackManifest, SourceSummary
@@ -41,6 +42,7 @@ def write_pack(
     pipeline_config: dict[str, Any],
     force: bool = False,
     include_normalized_markdown: bool = True,
+    private_key_path: Path | None = None,
 ) -> PackManifest:
     output = output.resolve()
     if output.exists() and not force:
@@ -98,7 +100,13 @@ def write_pack(
             checksums=checksums,
             metadata={"build_report": BUILD_REPORT_JSON},
         )
-        write_json(temp_dir / MANIFEST, manifest, pretty=True)
+        manifest_bytes = write_json(temp_dir / MANIFEST, manifest, pretty=True)
+
+        if private_key_path:
+            from contexte.core.signing import sign_data
+            signature = sign_data(manifest_bytes, private_key_path)
+            write_json(temp_dir / SIGNATURE_JSON, {"signature": signature, "algorithm": "ed25519"})
+
         _zip_dir(temp_dir, temp_zip)
         if output.exists():
             output.unlink()

@@ -23,3 +23,5 @@ jobs:
         run: mypy src
       - name: Tests
         run: pytest --cov=contexte
+      - name: Benchmarks
+        run: python scripts/run_benchmarks.py
